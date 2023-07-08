@@ -1,0 +1,330 @@
+<%-include('partials/header');-%>
+
+<main>
+  <div class="main-container">
+    <h1>Welcome To Your Dashboard!</h1>
+
+    <caption>
+      <h2 id="create-modify-url"><em>Create, edit, or delete url:</em></h2>
+    </caption>
+    <div class="forms">
+      <form class="form-item" id="create-url">
+        <fieldset>
+          <legend>Create short URL:</legend>
+          <!-- long url -->
+          <label for="longUrl">Long url:</label> <br />
+          <input type="text" name="longUrl" placeholder="Enter long url here" />
+          <br /><br />
+          <!-- custom url -->
+          <label for="customUrl">Custom url (optional):</label> <br />
+          <input
+            type="text"
+            name="customUrl"
+            placeholder="Enter custom word here"
+          />
+          <br /><br />
+          <!-- qrcode -->
+          <label for="qrcode">Check to generate QRCode:</label>
+          <input type="checkbox" name="qrcode" /> <br /><br />
+          <!-- submit button -->
+          <button>Create URL</button> <br />
+          <!-- response message from server -->
+          <p class="res-msg"></p>
+          <img src="" height="100" id="qrcode-img" alt="" />
+        </fieldset>
+      </form>
+
+      <form class="form-item" id="edit-url">
+        <fieldset>
+          <legend>Edit short URL:</legend>
+          <!-- find url -->
+          <label for="findUrlToEdit"
+            >Enter the short url you wish to edit:</label
+          >
+          <br />
+          <input
+            type="text"
+            name="findUrlToEdit"
+            placeholder="Enter short url here"
+          />
+          <br /><br />
+          <!-- long url -->
+          <label for="longUrl">New long url:</label> <br />
+          <input
+            type="text"
+            name="longUrl"
+            placeholder="Enter new long url here"
+          />
+          <br /><br />
+          <!-- custom url -->
+          <label for="customUrl">New custom url (optional):</label> <br />
+          <input
+            type="text"
+            name="customUrl"
+            placeholder="Enter custom word here"
+          />
+          <br /><br />
+          <!-- qrcode -->
+          <label for="qrcode">Check to generate QRCode:</label>
+          <input type="checkbox" name="qrcode" /> <br /><br />
+          <!-- submit button -->
+          <button>Edit URL</button> <br />
+          <!-- response message from server -->
+          <p id="edit-msg"></p>
+          <img src="" height="100" id="edited-qrcode-img" alt="" />
+        </fieldset>
+      </form>
+
+      <form class="form-item" id="delete-url">
+        <fieldset>
+          <legend>Delete short URL:</legend>
+          <!-- find url -->
+          <label for="findUrl">Delete one:</label> <br />
+          <input
+            type="text"
+            name="findUrl"
+            placeholder="Enter short url here"
+          />
+          <br /><br />
+
+          <!-- delete all -->
+          <label for="deleteAll">Or delete all:</label><br />
+          <input type="checkbox" name="deleteAll" /><br />
+
+          <!-- submit button -->
+          <button>Delete URL</button> <br />
+          <!-- response message from server -->
+          <p id="delete-message"></p>
+        </fieldset>
+      </form>
+    </div>
+
+    <caption>
+      <h2 id="link-history"><em>Link History:</em></h2>
+    </caption>
+    <table>
+      <thead>
+        <tr>
+          <th>S/N</th>
+          <th>SHORT URL</th>
+          <th>LONG URL</th>
+          <th>TIME CREATED</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% urlCollection.forEach((element, i)=> { %>
+        <tr>
+          <td><%= 1 + i %></td>
+          <td><%= element.shortUrl %></td>
+          <td><%= element.longUrl %></td>
+          <td><%= element.createdAt%></td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+
+    <caption>
+      <h2 id="analytics"><em>Analytics:</em></h2>
+    </caption>
+    <% for( let i=0; i < urlCollection?.length; i++ ) { %>
+    <fieldset>
+      <legend>
+        (<%= 1 + i %>). Details for: <%= urlCollection[i].shortUrl %>, Number of
+        Clicks: <%= urlCollection[i].clicks %>
+      </legend>
+
+      <table class="table">
+        <thead>
+          <tr>
+            <th>S/N</th>
+            <th class="column">TIME OF CLICKS (timestamp)</th>
+            <th class="column">BROWSER (userAgent)</th>
+            <th class="column">ORIGIN OF CLICKS (Referrer)</th>
+            <th>
+              <img
+                src="<%=urlCollection[i].qrcodeFileLocation%>"
+                class="analytics-qrcode-images"
+                height="100"
+                alt=""
+              />
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <% for( let j=0; j < urlCollection[i]?.clickDetails?.length; j++ ) {
+          %>
+          <tr>
+            <td><%= 1 + j %>.</td>
+            <td class="column">
+              <%= urlCollection[i].clickDetails[j].timestamp %>
+            </td>
+            <td class="column">
+              <%= urlCollection[i].clickDetails[j].userAgent %>
+            </td>
+            <td class="column">
+              <%= urlCollection[i].clickDetails[j].referrer %>
+            </td>
+          </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </fieldset>
+    <br />
+    <% } %>
+
+    <div id="delete-account">
+      <caption>
+        <h2><em>Delete user account:</em></h2>
+      </caption>
+      <p>
+        You can delete your user account here, by clicking the button below.
+        However, please note that if you proceed, you lose all the urls you've
+        created, as well as your link history and analytics. Also, your user
+        account details will be deleted and you would be redirected to our
+        homepage.
+      </p>
+      <button id="delete-account">Delete your account</button>
+    </div>
+
+    <script>
+      window.addEventListener("load", async (event) => {
+        try {
+          const res = await fetch("/api/v1/deleteQrcodeImg", {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+          });
+        } catch (err) {
+          console.log(err);
+        }
+      });
+
+      const createUrlForm = document.querySelector("#create-url");
+      createUrlForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const resMsg = document.querySelector(".res-msg");
+        const qrcodeImageElement = document.querySelector("#qrcode-img");
+        resMsg.innerText = ""; // reset response message div
+        qrcodeImageElement.src = "";
+        try {
+          qrcodeImageElement.onload = async function () {
+            const res = await fetch("/api/v1/deleteQrcodeImg", {
+              method: "DELETE",
+              headers: { "Content-Type": "application/json" },
+            });
+          };
+        } catch (err) {
+          console.log(err);
+        }
+        // form input is assigned to js variables
+        const longUrl = createUrlForm.longUrl.value;
+        const customUrl = createUrlForm.customUrl.value;
+        const qrcodeRequested = createUrlForm.qrcode.checked;
+        try {
+          const res = await fetch("/api/v1/", {
+            method: "POST",
+            body: JSON.stringify({ longUrl, customUrl, qrcodeRequested }),
+            headers: { "Content-Type": "application/json" },
+          });
+          const data = await res.json();
+          if (data.shortUrlCreated) {
+            resMsg.innerText = data.resMsg;
+            qrcodeImageElement.src = data.qrcodeFileLocation;
+            return;
+          }
+          resMsg.innerText = data.errMsg;
+          qrcodeImageElement.src = "";
+        } catch (err) {
+          console.log(err);
+        }
+      });
+
+      const editUrlForm = document.querySelector("#edit-url");
+      editUrlForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        console.log("hello, Osakpolor");
+        const editMsg = document.querySelector("#edit-msg");
+        const editedQrcodeImageElement =
+          document.querySelector("#edited-qrcode-img");
+        editMsg.innerText = ""; // reset response message div
+        editedQrcodeImageElement.src = "";
+        try {
+          editedQrcodeImageElement.onload = async function () {
+            const res = await fetch("/api/v1/deleteQrcodeImg", {
+              method: "DELETE",
+              headers: { "Content-Type": "application/json" },
+            });
+          };
+        } catch (err) {
+          console.log(err);
+        }
+        // form input is assigned to js variables
+        const findUrlToEdit = editUrlForm.findUrlToEdit.value;
+        const longUrl = editUrlForm.longUrl.value;
+        const customUrl = editUrlForm.customUrl.value;
+        const qrcodeRequested = editUrlForm.qrcode.checked;
+        console.log({ findUrlToEdit, longUrl, customUrl, qrcodeRequested });
+        try {
+          const res = await fetch("/api/v1/update/", {
+            method: "PUT",
+            body: JSON.stringify({
+              findUrlToEdit,
+              longUrl,
+              customUrl,
+              qrcodeRequested,
+            }),
+            headers: { "Content-Type": "application/json" },
+          });
+          const data = await res.json();
+          console.log({ data });
+          if (data.shortUrlEdited) {
+            editMsg.innerText = data.resMsg;
+            editedQrcodeImageElement.src = data.qrcodeFileLocation;
+            console.log({ editMsg, editedQrcodeImageElement });
+            return;
+          }
+          editMsg.innerText = data.errMsg;
+          editedQrcodeImageElement.src = "";
+        } catch (err) {
+          console.log(err);
+        }
+      });
+
+      const deleteUrlForm = document.querySelector("#delete-url");
+      deleteUrlForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const findUrl = deleteUrlForm.findUrl.value;
+        const deleteAll = deleteUrlForm.deleteAll.checked;
+        const resMsgDelUrl = document.querySelector("#delete-message");
+        resMsgDelUrl.innerText = "";
+        try {
+          const res = await fetch("/api/v1/delete", {
+            method: "DELETE",
+            body: JSON.stringify({ findUrl, deleteAll }),
+            headers: { "Content-Type": "application/json" },
+          });
+          const data = await res.json();
+          console.log({ data });
+          resMsgDelUrl.innerText = data.resMsgDelUrl;
+        } catch (err) {
+          console.log(err);
+        }
+      });
+
+      const deleteAccountBtn = document.querySelector("#delete-account");
+      deleteAccountBtn.addEventListener("click", async (event) => {
+        try {
+          const res = await fetch("/api/v1/user/delete", {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+          });
+          const data = await res.json();
+          console.log({ data });
+          if (data.accountDeleted) return location.assign("/scissor/homepage");
+        } catch (err) {
+          console.log(err);
+        }
+      });
+    </script>
+  </div>
+</main>
+<%-include('partials/footer');-%>

@@ -1,0 +1,13 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.scissorRoute = void 0;
+const express_1 = require("express");
+const scissor_controller_1 = require("../controllers/scissor.controller");
+const router = (0, express_1.Router)();
+exports.scissorRoute = router;
+router.get('/homepage', scissor_controller_1.homepage);
+router.get('/success', scissor_controller_1.success);
+router.get('/404-page', scissor_controller_1.clientErrorPage);
+router.get('/500-page', scissor_controller_1.serverErrorPage);
+router.get('/signup', scissor_controller_1.signupPage);
+router.get('/login', scissor_controller_1.loginPage);

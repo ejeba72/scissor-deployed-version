@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Scissor</title>
+
+    <style>
+        /* general settings */
+      * {
+        background-color: black;
+        color: aliceblue;
+        font-family: Arial, Helvetica, sans-serif;
+      }
+      p {
+        max-width: 50vw;
+        line-height: 1.5;
+      }
+      /* navigation selectors */
+      .navbar {
+        padding-left: 4%;
+        /* outline: 1px solid burlywood; */
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        align-content: center;
+      }
+      .logo {
+        display: flex;
+        flex-basis: 3%;
+        align-items: center;
+      }
+      .user-status1 {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-around;
+        flex-basis: 25%;
+      }
+      .user-status2 {
+        /* outline: 1px solid grey; */
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-around;
+        flex-basis: 35%;
+      }
+      .user-status3 {
+        /* outline: 1px solid grey; */
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-around;
+        flex-basis: 35%;
+      }
+      .anchor-links {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-evenly;
+        flex-basis: 60%;
+      }
+      .dashboard-link {
+        display: flex;
+        flex-basis: 25%;
+      }
+      /* main section selectors */
+      .main-container {
+        padding-left: 7.5vw;
+        padding-right: 7.5vw;
+        /* outline: 1px solid grey; */
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        align-items: center;
+      }
+      /* short url forms section */
+      .forms {
+        padding-left: 5%;
+        padding-right: 5%;
+        /* outline: 1px solid goldenrod; */
+        display: flex;
+        justify-content: space-around;
+      }
+      .form-item {
+        padding: 5%;
+        display: flex;
+        flex-basis: 25%;
+        flex-direction: column;
+      }
+
+      /* footer-section */
+      footer {
+        padding-left: 4%;
+      }
+
+    </style>
+
+  </head>
+  <body>
+    <header>
+      <nav>
+        <% if (isDashboard && user) { %>
+            <div class="navbar">
+                <div class="logo">
+                    <a href="/scissor/homepage"><img src="/scissor-logo.png" height="40" alt=""/></a>
+                    <!-- <h1><a href="/scissor/homepage">Scissor</a></h1> -->
+                </div>
+                <div class="anchor-links">
+                    <li><a href="#create-modify-url">Create/modify short URL</a></li>
+                    <li><a href="#link-history">Link history</a></li>
+                    <li><a href="#analytics">Analytics</a></li>
+                    <li><a href="#delete-account">Delete account</a></li>
+                </div>
+                <div class="user-status1">
+                  <li><%= user.email %></li>
+                  <li><a href="/api/v1/user/logout">Log out</a></li>
+                </div>
+            </div>
+        <% } else if (!isDashboard && user) { %> 
+            <div class="navbar">
+                <div class="logo">
+                    <a href="/scissor/homepage"><img src="/scissor-logo.png" height="40" alt=""/></a>
+                </div>
+                <div class="dashboard-link">
+                  <a href="/api/v1/">Go to dashboard</a>
+                </div>
+                <div class="user-status2">
+                  <li><%= user.email %></li>
+                  <li><a href="/api/v1/user/logout">Log out</a></li>
+                </div>
+            </div>
+        <% } else { %> 
+              <div class="navbar">
+                  <div class="logo">
+                      <a href="/scissor/homepage"><img src="/scissor-logo.png" height="40" alt=""/></a>
+                  </div>
+                  <div class="user-status3">
+                    <li><a href="/scissor/login">Log in</a></li>
+                    <li><a href="/scissor/signup" class="btn">Sign up</a></li>
+                  </div>
+              </div>
+        <% } %> 
+            
+
+      </nav>
+    </header>
+  </body>
+</html>
