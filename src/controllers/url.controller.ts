@@ -5,9 +5,10 @@ import { config } from "dotenv";
 import { UrlModel } from "../models/url.model";
 import { ZUrlSchema } from "../validations/url.validation";
 import { qrGenerator, qrcodeResMsg } from "../utils/qrcode.util";
-import { join } from "path";
+import { dirname, join } from "path";
 import { GetPublicKeyOrSecret, Secret, verify } from "jsonwebtoken";
 import { generateUserId } from "../utils/userId.utils";
+import { access, mkdir } from "fs";
 import { readdir, unlink } from "fs/promises";
 import { error, log } from "console";
 import { Redis } from "ioredis";
@@ -110,12 +111,29 @@ async function postNewShortUrl(req: Request, res: Response): Promise<unknown> {
 // @desc render dashboard page
 async function getDashboard(req: Request, res: Response) {
   try {
+    // check if qrcode image directory already exist. If not create it:
+    const qrcodeDirPath = join(__dirname, "..", "..", "public", "img");
+    access(qrcodeDirPath, (err: unknown) => {
+      if (err) {
+	      mkdir(qrcodeDirPath, (err: unknown) => {
+	        if (err) {
+		        log(err);
+	        } else {
+		        log("qrcode image directory created successfully");
+	        }
+	      });
+      } else {
+	      log("qrcode image directory already exists");
+      }
+    });
+
     const userId = generateUserId(req.cookies?.jwt, JWT_SECRET_KEY);
     // log({ userId });
     const urlCollection = await UrlModel.find({ userId });
     const qrcodeDocs = urlCollection.filter((doc) => {
       return doc.qrcodeRequested === true;
     });
+    // retrieve the shortUrl and the qrcode file path from the database documents
     const generatorParams = qrcodeDocs.map((doc) => {
       return {
         qrcodeFilePath: join(
@@ -128,6 +146,7 @@ async function getDashboard(req: Request, res: Response) {
         shortUrl: doc.shortUrl,
       };
     });
+    // generate qrcode
     generatorParams.forEach((params) => {
       async function generatorFunction() {
         await qrGenerator(params.qrcodeFilePath, params.shortUrl);

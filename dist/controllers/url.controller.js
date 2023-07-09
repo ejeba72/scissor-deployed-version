@@ -21,6 +21,7 @@ const url_validation_1 = require("../validations/url.validation");
 const qrcode_util_1 = require("../utils/qrcode.util");
 const path_1 = require("path");
 const userId_utils_1 = require("../utils/userId.utils");
+const fs_1 = require("fs");
 const promises_1 = require("fs/promises");
 const console_1 = require("console");
 const ioredis_1 = require("ioredis");
@@ -120,18 +121,37 @@ function getDashboard(req, res) {
     var _a;
     return __awaiter(this, void 0, void 0, function* () {
         try {
+            // check if qrcode image directory already exist. If not create it:
+            const qrcodeDirPath = (0, path_1.join)(__dirname, "..", "..", "public", "img");
+            (0, fs_1.access)(qrcodeDirPath, (err) => {
+                if (err) {
+                    (0, fs_1.mkdir)(qrcodeDirPath, (err) => {
+                        if (err) {
+                            (0, console_1.log)(err);
+                        }
+                        else {
+                            (0, console_1.log)("qrcode image directory created successfully");
+                        }
+                    });
+                }
+                else {
+                    (0, console_1.log)("qrcode image directory already exists");
+                }
+            });
             const userId = (0, userId_utils_1.generateUserId)((_a = req.cookies) === null || _a === void 0 ? void 0 : _a.jwt, JWT_SECRET_KEY);
             // log({ userId });
             const urlCollection = yield url_model_1.UrlModel.find({ userId });
             const qrcodeDocs = urlCollection.filter((doc) => {
                 return doc.qrcodeRequested === true;
             });
+            // retrieve the shortUrl and the qrcode file path from the database documents
             const generatorParams = qrcodeDocs.map((doc) => {
                 return {
                     qrcodeFilePath: (0, path_1.join)(__dirname, "..", "..", "public", doc.qrcodeFileLocation),
                     shortUrl: doc.shortUrl,
                 };
             });
+            // generate qrcode
             generatorParams.forEach((params) => {
                 function generatorFunction() {
                     return __awaiter(this, void 0, void 0, function* () {
